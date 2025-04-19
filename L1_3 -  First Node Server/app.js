@@ -18,7 +18,8 @@ const http = require('http')
 // or arrow function
 const PORT = 3000
 const server = http.createServer((req, res) =>{
-
+  console.log(req.headers, req.method, req.url);
+  
 })
 
 server.listen(PORT, ()=>{
