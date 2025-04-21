@@ -1,9 +1,8 @@
-const http = require('http')
-const fs = require('fs')
 
-const PORT = 3000
-const server = http.createServer((req, res) =>{
-  console.log(req.headers, req.method, req.url);
+const fs = require('fs');
+const { json } = require('stream/consumers');
+const requestHandler = ((req, res) =>{
+//   console.log(req.headers, req.method, req.url);
 //   res.setHeader('Content-Type', 'json');
 //   res.write("helo")
 
@@ -25,7 +24,24 @@ if (req.url === '/'){
     return res.end()
 
 } else if(req.url.toLocaleLowerCase() ==='/submit-details' && req.method ==='POST'){
-   fs.writeFileSync('user.txt', "Apurv G.")
+    const body = [];
+    req.on('data', (chunk) => {
+       console.log(chunk.toString());
+       fs.writeFileSync('user.txt', chunk.toString())
+   })
+   req.on('end', ()=>{
+    const fullBody = Buffer.concat(body).toString()
+    console.log(fullBody);
+    const params = new URLSearchParams(fullBody)
+    const bodyObject = {}
+    for (const [key, value] of params.entries()) {
+        bodyObject[key] = value
+    }
+    console.log(bodyObject);
+    const jsonData = JSON.stringify(bodyObject)
+   fs.writeFileSync('user.txt', jsonData)
+   })
+   
    res.statusCode = 302
    res.setHeader('Location', '/')
    // 302 means redirection
@@ -41,6 +57,4 @@ return res.end()
 })
 
 
-server.listen(PORT, ()=>{
-    console.log(`Server Started at port http://localhost:${PORT}`);
-})
+module.exports = requestHandler
